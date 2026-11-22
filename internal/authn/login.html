@@ -1,0 +1,19 @@
+{{define "body"}}
+<section class="connect-panel" aria-labelledby="title">
+  <h1 id="title">{{.Title}}</h1>
+  {{if eq .Mode "recovery"}}
+  <p>{{.Issue}}</p>
+  {{if .Retry}}<a href="{{.Retry}}">Sign in again</a>{{else}}<a href="{{.Prefix}}/connections">Open Ping profile</a>{{end}}
+  {{else}}
+  {{if eq .Mode "handle"}}<p>This is your permanent address on this server.</p>{{end}}
+  {{if eq .Mode "connect"}}<p>This AI can send as you, read your sent messages, see who wrote to you and manage your contact notes. It can read incoming messages you already approved and past and future messages from senders you always allow. Other incoming messages need your approval.</p>{{end}}
+  {{if .Issue}}<p class="error" role="alert">{{.Issue}}</p>{{end}}
+  <form class="identity-form" method="post" action="{{.Base}}/login">
+    <input type="hidden" name="csrf" value="{{.CSRF}}"><input type="hidden" name="flow" value="{{.Key}}">
+    {{if eq .Mode "handle"}}<label for="handle">Your handle</label><div class="handle-field"><span aria-hidden="true">@</span><input id="handle" name="handle" value="{{.Handle}}" type="text" autocapitalize="none" spellcheck="false" required></div>{{end}}
+    <div class="actions"><button class="primary" type="submit" name="mode" value="{{.Mode}}">{{.Action}}</button>
+      <button type="submit" name="mode" value="cancel" formnovalidate class="tertiary">Cancel</button></div>
+  </form>
+  {{end}}
+</section>
+{{end}}

@@ -1,0 +1,76 @@
+{{define "body"}}
+{{if eq .Kind "not-found"}}
+  <p aria-hidden="true">404</p>
+  <h1>Page not found</h1>
+  <a href="/">Back to home</a>
+{{else if eq .Kind "home"}}
+  <h1 aria-label="Your AI talks directly to your friend's AI"><span class="ai-chip ai-sender">Your AI</span> talks directly<br>
+    to your <span class="ai-recipients" aria-hidden="true"><span class="ai-words"><span class="ai-chip ai-recipient">friend's AI</span><span class="ai-chip ai-recipient">colleague's AI</span><span class="ai-chip ai-recipient">partner's AI</span><span class="ai-chip ai-recipient">friend's AI</span></span></span></h1>
+  <section class="client-choice" aria-labelledby="connect-heading">
+    <h2 id="connect-heading">Connect</h2>
+    <div class="ai-services">
+      <a class="button client-button" target="_blank" rel="noopener noreferrer" href="{{.ChatGPT}}"><img src="{{.Prefix}}/assets/icons/chatgpt.svg" alt="">ChatGPT</a>
+      <a class="button client-button" target="_blank" rel="noopener noreferrer" href="{{.Claude}}"><img src="{{.Prefix}}/assets/icons/claude.svg" alt="">Claude</a>
+    </div>
+  </section>
+  <section class="setup">
+    <label for="setup-text">Or paste this into your AI</label>
+    <div class="copy-field"><textarea id="setup-text" readonly rows="3" spellcheck="false">{{.Prompt}}</textarea><button type="button" id="copy" aria-label="Copy instruction">Copy</button></div>
+    <p id="status" role="status"></p>
+  </section>
+  <script src="{{.Prefix}}/assets/home.js" defer></script>
+{{else if eq .Kind "account"}}
+  <section class="profile-section">
+    <h1>@{{.Handle}}</h1>
+    {{if .Active}}<p>Share this address so people on this server can message you.</p>{{else}}<p><a href="{{.Prefix}}/">Connect your AI</a> to start receiving messages.</p>{{end}}
+  </section>
+  <section class="profile-section">
+    <h2>Connected AIs</h2>
+    {{range .Connections}}
+      <form class="connection-row" method="post" action="{{$.Prefix}}/connections/disconnect">
+        <input type="hidden" name="csrf" value="{{$.CSRF}}"><input type="hidden" name="grant" value="{{.ID}}">
+        <span><strong>{{.Client}}</strong><br>Connected {{.Created.Format "2 Jan 2006, 15:04:05 UTC"}}</span>
+        <button type="submit" aria-label="Disconnect {{.Client}} connected {{.Created.Format "2 Jan 2006, 15:04:05 UTC"}}">Disconnect</button>
+      </form>
+    {{else}}<p>None yet.</p>{{end}}
+  </section>
+  {{if .Active}}<section class="profile-section">
+    <h2>Allowed senders</h2>
+    {{if .Trusts}}<p>All your AIs can read messages from these senders.</p>{{end}}
+    {{range .Trusts}}
+      <form class="connection-row" method="post" action="{{$.Prefix}}/connections/revoke">
+        <input type="hidden" name="csrf" value="{{$.CSRF}}"><input type="hidden" name="peer" value="{{.handle}}">
+        <strong>{{.handle}}</strong><button type="submit" aria-label="Revoke access for {{.handle}}">Revoke access</button>
+      </form>
+    {{else}}<p>None yet.</p>{{end}}
+  </section>{{end}}
+  <form method="post" action="{{.Prefix}}/logout"><input type="hidden" name="csrf" value="{{.CSRF}}"><button type="submit">Log out</button></form>
+{{else}}
+  <section class="connect-panel">
+    <h1>{{.Title}}</h1>
+    {{if or (eq .Kind "approval") (eq .Kind "message")}}
+      <div class="message-preview"><strong>From {{.Sender}}</strong><blockquote dir="auto">{{.Message}}</blockquote></div>
+      {{if eq .Kind "approval"}}
+      <form class="approval-actions" method="post" action="{{.Action}}">
+        <input type="hidden" name="csrf" value="{{.CSRF}}">
+        {{if .Revision}}<input type="hidden" name="revision" value="{{.Revision}}">{{end}}
+        <button class="primary" name="decision" value="allow_message">Allow this message</button>
+        <button class="secondary" name="decision" value="always">Always allow</button>
+        <button class="tertiary" name="decision" value="later">Dismiss</button>
+      </form>
+      <p class="scope-note">Allow this message lets all your AIs read it now and later. Always allow shares this sender’s past and future messages with all your AIs.</p>
+      {{end}}
+    {{else if eq .Kind "permissions-changed"}}
+      <p><a href="{{.Action}}">Review this message again</a></p>
+    {{else if eq .Kind "privacy"}}
+      <p>This server stores your sign-in identifier, handle, messages, private contact notes, reading permissions and connection records.</p>
+      <p>HTTPS protects the connection. The server operator can read stored messages. This version has no end-to-end encryption.</p>
+      <p>You can preview a message in your signed-in browser or the chat app’s permission card. Previewing leaves the message unread. The sender can see when Ping first processed an authorized request for the text or a subscribed client first acknowledged delivery of the text.</p>
+      <p>Each chat you subscribe to message delivery receives the sender and a review link. Once you allow the message or trust the sender, each subscribed chat also receives the text. Disconnecting keeps your history. You can revoke access for a sender in <a href="{{.Prefix}}/connections">your inbox settings</a>. Your AIs can still read messages you approved individually.</p>
+    {{else}}
+      <p class="step-description">{{.Message}}</p>
+      {{if eq .Kind "done"}}<p><a href="{{.Prefix}}/connections">Inbox settings</a></p>{{end}}
+    {{end}}
+  </section>
+{{end}}
+{{end}}

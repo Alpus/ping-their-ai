@@ -1,0 +1,30 @@
+{{define "layout"}}<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>{{if ne .Title .Brand.Name}}{{.Title}} · {{end}}{{.Brand.Name}}</title>
+  <link rel="preload" href="{{.Prefix}}/assets/fonts/geist-regular.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="{{.Prefix}}/assets/fonts/geist-medium.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="{{.Prefix}}/assets/fonts/geist-semibold.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="{{.Prefix}}/assets/style.css">
+</head>
+<body>
+<main class="{{.MainClass}}">
+  {{if ne .MainClass "not-found"}}<header class="site-header">
+    <a class="brand" href="{{.Prefix}}/">{{.Brand.Name}}</a>
+    {{if not .HideAccountLink}}<a class="account-link" href="{{.Prefix}}/connections">{{if .SignedIn}}Profile{{else}}Log In{{end}}</a>{{end}}
+  </header>{{end}}
+  {{template "body" .}}
+</main>
+{{if and (ne .MainClass "not-found") (or .Brand.Footer (and .Brand.TrustTitle .Brand.TrustBody))}}
+<footer class="site-footer">
+  {{with .Brand.Footer}}<div class="credit">{{.}}</div>{{end}}
+  {{if and .Brand.TrustTitle .Brand.TrustBody}}
+    <button type="button" popovertarget="trust-note">{{.Brand.TrustTitle}}</button>
+    <div id="trust-note" popover aria-label="{{.Brand.TrustTitle}}">{{.Brand.TrustBody}}</div>
+  {{end}}
+</footer>
+{{end}}
+</body>
+</html>{{end}}

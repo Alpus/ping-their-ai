@@ -1,0 +1,38 @@
+services:
+  ping:
+    build: .
+    restart: unless-stopped
+    environment:
+      LISTEN_ADDR: 127.0.0.1:8787
+      PUBLIC_URL: https://${DOMAIN:?Set DOMAIN to your server hostname}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:?Set the Google web client ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:?Set the Google web client secret}
+      GOOGLE_ALLOWED_DOMAIN: ${GOOGLE_ALLOWED_DOMAIN:-}
+      INSTALL_NOTES_MD: ${INSTALL_NOTES_MD:-}
+      SITE_NAME: ${SITE_NAME:-}
+      FOOTER_MD: ${FOOTER_MD:-}
+      TRUST_TITLE: ${TRUST_TITLE:-}
+      TRUST_BODY_MD: ${TRUST_BODY_MD:-}
+    volumes:
+      - mail:/data
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    network_mode: service:caddy
+  caddy:
+    image: caddy:2.11.9-alpine
+    restart: unless-stopped
+    environment:
+      DOMAIN: ${DOMAIN:?Set DOMAIN to your server hostname}
+    ports: ["80:80", "443:443"]
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - certificates:/data
+      - caddy_config:/config
+    networks: [app]
+networks:
+  app:
+volumes:
+  mail:
+  certificates:
+  caddy_config:
